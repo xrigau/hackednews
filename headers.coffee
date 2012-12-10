@@ -22,7 +22,7 @@ Client = ->
 	parseTitle = (data) ->
 		titles = $("td a", data).map (ndx, item) ->
 			$(item).text().replace("(", "").replace(")", "")
-		_.filter titles, (title) -> title != ''
+		_.filter(titles, (title) -> title != '').pop()
 
 	parseNews = (data) ->
 		dom = cheerio.load data
