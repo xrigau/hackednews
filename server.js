@@ -28,7 +28,5 @@ app.configure('development', function(){
 
 require("./apps/news/routes")(app);
 
-httpProxy.createServer(3000, 'localhost').listen(4000);
-
 app.listen(app.settings.port);
 console.log("Express server listening on port " + app.get('port'));
