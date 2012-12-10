@@ -16,13 +16,22 @@ Client = ->
 		results
 
 	parseDomain = (data) ->
-		$(".comhead", data).map (ndx, item) ->
-			$(item).text().replace("(", "").replace(")", "")
+		($(".comhead", data).map (ndx, item) ->
+			$(item).text().replace("(", "").replace(")", "")).pop()
 
 	parseTitle = (data) ->
 		titles = $("td a", data).map (ndx, item) ->
 			$(item).text().replace("(", "").replace(")", "")
 		_.filter(titles, (title) -> title != '').pop()
+
+	parseStoryHref = (data) ->
+		$("td a", data).last().attr("href")
+
+	parseSubmittedBy = (data) ->
+		user = {}
+		user.name = $("td a", data).html()
+		user.href = $("td a", data).attr("href")
+		user
 
 	parseNews = (data) ->
 		dom = cheerio.load data
@@ -32,7 +41,10 @@ Client = ->
 			obj = {}
 			obj.domain = parseDomain $(item[1])
 			obj.title = parseTitle $(item[1])
+			obj.href = parseStoryHref $(item[1])
+			obj.submittedBy = parseSubmittedBy $(item[2])
 			obj
+		console.log news
 		news
 
 	callHNews = (page, fn) ->
@@ -62,23 +74,3 @@ Client = ->
 		headers
 
 module.exports = Client
-###
-		http.get "#{host}#{nextPage}", (res) ->
-			res.on 'data', (chunk) ->
-				$1 = cheerio.load(chunk)
-				console.log $1.html()
-
-	items = parseDomains(chunk)
-				nextPage = $('a[rel="nofollow"]:contains(More)').attr("href")
-				items.push nextPage
-				console.log items
-
-				http.get "#{host}/newest", (res) ->
-			chunks = []
-			res.on 'data', (chunk) ->
-				chunks.push chunk
-			res.on "end", ->
-				$ = cheerio.load(chunks)
-				fn($.html())
-		.on 'error', (e) ->
-			console.log("Got error: " + e.message)

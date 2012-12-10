@@ -16,6 +16,8 @@
     "shred": "~0.8.8",
     "http-proxy": "~0.8.5",
     "underscore": "~1.4.3",
-    "jsdom": "~0.2.19"
+    "jsdom": "~0.2.19",
+    "redis": "~0.8.2",
+    "mongoose": "~3.4.0"
   }
 }
