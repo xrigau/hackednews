@@ -1,0 +1,20 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "express": "3.0.4",
+    "jade": "*",
+    "node-dev": "~0.2.9",
+    "coffee-script": "~1.4.0",
+    "async": "~0.1.22",
+    "node-get": "~0.1.0",
+    "shred": "~0.8.8",
+    "http-proxy": "~0.8.5",
+    "underscore": "~1.4.3",
+    "jsdom": "~0.2.19"
+  }
+}
