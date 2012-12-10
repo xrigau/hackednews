@@ -30,7 +30,7 @@ Client = ->
 	parseSubmittedBy = (data) ->
 		user = {}
 		user.name = $("td a", data).html()
-		user.href = $("td a", data).attr("href")
+		user.href = host+"/"+$("td a", data).attr("href")
 		user
 
 	parseNews = (data) ->
