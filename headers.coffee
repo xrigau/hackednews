@@ -7,7 +7,7 @@ $ = require('cheerio')
 protocol = "http://"
 host = "#{protocol}news.ycombinator.com"
 
-Client = ->
+Client = (myHost) ->
 
 	chunks = (array, size) ->
 		results = []
@@ -33,18 +33,38 @@ Client = ->
 		user.href = host+"/"+$("td a", data).attr("href")
 		user
 
+	parsePoints = (data) =>
+		$("td span", data).text().split(' ')[0]
+
+	parseNextPage = (data) ->
+		myHost + $("a", data).attr("href")
+
+	parseWhen = (data) ->
+		timeRegex = /(?:)[0-9]* (day[s]*|minute[s]*|hour[s]*) ago/g
+		match = timeRegex.exec($("td", data).text())
+		match[0]
+
 	parseNews = (data) ->
 		dom = cheerio.load data
 		rows = dom("table table tr").toArray()
-		groups = chunks(rows,3)
-		news = _.map groups, (item, ndx) ->
+		stories = rows.splice(0, rows.length-4)
+		nextPage = rows.splice(rows.length-4, rows.length)
+		
+		groups = chunks(stories ,3)
+
+		newsItems = _.map groups, (item, ndx) ->
 			obj = {}
 			obj.domain = parseDomain $(item[1])
 			obj.title = parseTitle $(item[1])
 			obj.href = parseStoryHref $(item[1])
 			obj.submittedBy = parseSubmittedBy $(item[2])
+			obj.points = parsePoints $(item[2])
+			obj.when = parseWhen $(item[2])
 			obj
-		console.log news
+
+		news = {}
+		news.newsItems = newsItems
+		news.more = parseNextPage $(nextPage)
 		news
 
 	callHNews = (page, fn) ->
@@ -61,6 +81,11 @@ Client = ->
 	
 	getNewest: (fn) ->
 		callHNews "newest", (body) ->
+			news = parseNews body
+			fn(news)
+
+	getPage: (page, fn)->
+		callHNews page, (body) ->
 			news = parseNews body
 			fn(news)
 

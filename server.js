@@ -12,6 +12,18 @@ var express = require('express')
 
 var app = express();
 
+var env = process.argv[2];
+
+var settings = null;
+
+if(env == 'development'){
+    settings = require(__dirname +'/dev-settings');
+}
+
+if(env == 'local'){
+    settings = require(__dirname +'/local-settings');
+}
+
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
@@ -31,7 +43,7 @@ app.configure('development', function(){
 require("./apps/news/routes")(app);
 
 app.listen(app.settings.port);
-client = require("./headers")()
+client = require("./headers")("http://localhost:3000")
 
 // database schema stuff
 var newsItemSchema = new mongoose.Schema({
@@ -45,14 +57,16 @@ var NewsItem = db.model('NewsItem', newsItemSchema)
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function callback () {
+/*
   setInterval(function (argument) {
     client.getNewest(function(feed){
       feed.map(function (item) {
         var model = new NewsItem(item)
         model.save()
       })
-    })
-  }, 5000);
+    });
+    console.log("tick");
+  }, 5000);*/
 });
 
 
