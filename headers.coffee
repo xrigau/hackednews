@@ -48,6 +48,9 @@ Client = (myHost) ->
 
 	parseNews = (data) ->
 		dom = cheerio.load data
+		headerLinks = $("a", dom("table tr").first())
+		_.each headerLinks, (item, ndx) ->
+			console.log $(item).attr "href"
 		rows = dom("table table tr").toArray()
 		stories = rows.splice(0, rows.length-4)
 		nextPage = rows.splice(rows.length-4, rows.length)
@@ -66,38 +69,42 @@ Client = (myHost) ->
 
 		news = {}
 		news.newsItems = newsItems
-		news.link = {}
-		news.link.rel = "nextPage"
-		news.link.href = parseNextPage $(nextPage)
+		news.links = []
+		news.links.push {rel:"nextPage", href: parseNextPage $(nextPage)}
 		news
 
-	callHNews = (page, fn) ->
+	callHNews = (uri, fn) ->
 		shred.get 
-			url:"#{host}/#{page}",
+			url:"#{host}/#{uri}",
 			on:
 				200: (response) ->
 					fn(response.body._body)
 				response: (response) ->
 					console.log("Oh no!")
 
-	getNewestHtml: (fn) ->
+	getNewestHtml: ({fn}) ->
 		callHNews "newest", fn
 	
-	getNewest: (fn) ->
+	getNewest: ({fn}) ->
 		callHNews "newest", (body) ->
 			news = parseNews body
 			fn(news)
 
-	getPage: (page, fn)->
-		callHNews page, (body) ->
+	getNews: ({fn}) ->
+		callHNews "news", (body) ->
 			news = parseNews body
 			fn(news)
 
-	getItem: (page, fn) ->
-		fn({page: page})
+	getPage: ({uri, fn})->
+		callHNews uri, (body) ->
+			news = parseNews body
+			fn(news)
 
-	getPageHtml: (page, fn)->
-		callHNews page, fn
+	getItem: ({uri, fn}) ->
+		fn({uri: uri})
+
+	getPageHtml: ({uri, fn})->
+		callHNews uri, fn
 
 	getHeaders: (domain) ->
 		headers = null

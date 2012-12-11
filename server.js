@@ -25,7 +25,7 @@ if(env == 'local'){
 }
 
 if (env == '' || env == null) {
-  settings = {host: "http://localhost:3000"}
+  settings = {host: "http://localhost:3000/"}
 }
 
 app.clientsettings = settings;
