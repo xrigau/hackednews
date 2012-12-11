@@ -30,7 +30,9 @@ Client = (myHost) ->
 	parseSubmittedBy = (data) ->
 		user = {}
 		user.name = $("td a", data).html()
-		user.href = host+"/"+$("td a", data).attr("href")
+		user.link = {}
+		user.link.rel = "viewUser"
+		user.link.href = host+"/"+$("td a", data).attr("href")
 		user
 
 	parsePoints = (data) =>
@@ -64,7 +66,9 @@ Client = (myHost) ->
 
 		news = {}
 		news.newsItems = newsItems
-		news.more = parseNextPage $(nextPage)
+		news.link = {}
+		news.link.rel = "nextPage"
+		news.link.href = parseNextPage $(nextPage)
 		news
 
 	callHNews = (page, fn) ->
@@ -88,6 +92,9 @@ Client = (myHost) ->
 		callHNews page, (body) ->
 			news = parseNews body
 			fn(news)
+
+	getItem: (page, fn) ->
+		fn({page: page})
 
 	getPageHtml: (page, fn)->
 		callHNews page, fn
