@@ -1,7 +1,7 @@
-Client = require("../../headers")("http://localhost:3000")
 
 routes = (app) ->
-
+	Client = require("../../headers")(app.clientsettings.host)
+	
 	app.get "/", (req, res) ->
 		res.format
 #			html: ->

@@ -24,6 +24,12 @@ if(env == 'local'){
     settings = require(__dirname +'/local-settings');
 }
 
+if (env == '' || env == null) {
+  settings = {host: "http://localhost:3000"}
+}
+
+app.clientsettings = settings;
+
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
   app.set('views', __dirname + '/views');
@@ -43,7 +49,7 @@ app.configure('development', function(){
 require("./apps/news/routes")(app);
 
 app.listen(app.settings.port);
-client = require("./headers")("http://localhost:3000")
+client = require("./headers")(settings.host)
 
 // database schema stuff
 var newsItemSchema = new mongoose.Schema({
