@@ -1,4 +1,3 @@
-
 routes = (app) ->
 	Client = require("../../headers")(app.clientsettings.host)
 	
@@ -9,6 +8,7 @@ routes = (app) ->
 		Client[fnName](
 			uri: uri
 			fn: (data) ->
+					data.links || data.links = []
 					data.links.push {rel:"self", href: createUrl req}
 					res.set('Content-Type', 'application/json')
 					res.send(data)
@@ -35,6 +35,20 @@ routes = (app) ->
 			default: ->
 				callback "getNewest", req: req, res: res
 
+	app.get "/newcomments", (req, res) ->
+		res.format
+			json: ->
+				callback "getNewComments", req: req, res: res
+			default: ->
+				callback "getNewComments", req: req, res: res
+
+	app.get "/ask", (req, res) ->
+		res.format
+			json: ->
+				callback "getAsk", req: req, res: res
+			default: ->
+				callback "getAsk", req: req, res: res
+
 	app.get "/x", (req, res) ->
 		res.format
 			json: ->
@@ -48,12 +62,6 @@ routes = (app) ->
 				callback "getItem", uri: "item?id=#{req.query.id}", req: req, res: res
 			default: ->
 				callback "getItem", uri: "item?id=#{req.query.id}", req: req, res: res
-	
-	app.get "/item", (req, res) ->
-		res.format
-			json: ->
-				callback "getItem", uri: "item?id=#{req.query.id}", req: req, res: res
-			default: ->
-				callback "getItem", uri: "item?id=#{req.query.id}", req: req, res: res
+
 
 module.exports = routes

@@ -46,11 +46,19 @@ Client = (myHost) ->
 		match = timeRegex.exec($("td", data).text())
 		match[0]
 
+	parseItem = (data) ->
+		obj = {}
+		obj.domain = parseDomain $(data[1])
+		obj.title = parseTitle $(data[1])
+		obj.href = parseStoryHref $(data[1])
+		obj.submittedBy = parseSubmittedBy $(data[2])
+		obj.points = parsePoints $(data[2])
+		obj.when = parseWhen $(data[2])
+		obj
+
 	parseNews = (data) ->
+
 		dom = cheerio.load data
-		headerLinks = $("a", dom("table tr").first())
-		_.each headerLinks, (item, ndx) ->
-			console.log $(item).attr "href"
 		rows = dom("table table tr").toArray()
 		stories = rows.splice(0, rows.length-4)
 		nextPage = rows.splice(rows.length-4, rows.length)
@@ -58,20 +66,27 @@ Client = (myHost) ->
 		groups = chunks(stories ,3)
 
 		newsItems = _.map groups, (item, ndx) ->
-			obj = {}
-			obj.domain = parseDomain $(item[1])
-			obj.title = parseTitle $(item[1])
-			obj.href = parseStoryHref $(item[1])
-			obj.submittedBy = parseSubmittedBy $(item[2])
-			obj.points = parsePoints $(item[2])
-			obj.when = parseWhen $(item[2])
-			obj
+			console.log $(item).html()
+			parseItem item
 
-		news = {}
-		news.newsItems = newsItems
-		news.links = []
-		news.links.push {rel:"nextPage", href: parseNextPage $(nextPage)}
-		news
+		res = {}
+		res.newsItems = newsItems
+		res.links = []
+		res.links.push {rel:"nextPage", href: parseNextPage $(nextPage)}
+
+		headerLinks = $("a", dom("table tr").first())
+		
+		res.links.push {rel: "ycombinator", href: $(headerLinks[0]).attr("href")}
+		res.links.push {rel: "ycombinator", href: "#{myHost}" + $(headerLinks[1]).attr("href")}
+		res.links.push {rel: "news", href: "#{myHost}" + $(headerLinks[2]).attr("href")}
+		res.links.push {rel: "newest", href: "#{myHost}" + $(headerLinks[3]).attr("href")}
+		res.links.push {rel: "newcomments", href: "#{myHost}" + $(headerLinks[4]).attr("href")}
+		res.links.push {rel: "jobs", href: "#{myHost}" + $(headerLinks[5]).attr("href")}
+		res
+
+	parseComments = (data) ->
+		console.log data.toString()
+		{}
 
 	callHNews = (uri, fn) ->
 		shred.get 
@@ -81,9 +96,6 @@ Client = (myHost) ->
 					fn(response.body._body)
 				response: (response) ->
 					console.log("Oh no!")
-
-	getNewestHtml: ({fn}) ->
-		callHNews "newest", fn
 	
 	getNewest: ({fn}) ->
 		callHNews "newest", (body) ->
@@ -100,11 +112,21 @@ Client = (myHost) ->
 			news = parseNews body
 			fn(news)
 
-	getItem: ({uri, fn}) ->
-		fn({uri: uri})
+	getAsk: ({fn}) ->
+		callHNews "ask", (body) ->
+			news = parseNews body
+			fn(news)
 
-	getPageHtml: ({uri, fn})->
-		callHNews uri, fn
+	getNewComments: ({fn}) ->
+		callHNews "newcomments", (body) ->
+			news = parseComments body
+			fn(news)
+
+	getItem: ({uri, fn}) ->
+		callHNews uri, (body) ->
+			console.log body.toString()
+			fn({uri: uri})
+
 
 	getHeaders: (domain) ->
 		headers = null
