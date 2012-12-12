@@ -85,7 +85,9 @@ Client = (myHost) ->
 		res
 
 	parseComments = (data) ->
-		console.log data.toString()
+		dom = cheerio.load data
+		rows = $(".defaults", $(dom))
+		console.log rows
 		{}
 
 	callHNews = (uri, fn) ->
