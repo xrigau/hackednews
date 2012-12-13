@@ -7,13 +7,23 @@ $ = require('cheerio')
 protocol = "http://"
 host = "#{protocol}news.ycombinator.com"
 
-Client = (myHost) ->
+HNApi = (myHost) ->
 
 	chunks = (array, size) ->
 		results = []
 		while array.length
 			results.push(array.splice(0, size))
 		results
+
+	isUrl = (data) ->
+		data.indexOf("http") is 0
+
+	getUrl = (data) ->
+		href = $(data).attr("href")
+		if isUrl href
+			href
+		else
+			"#{myHost}" + href
 
 	parseDomain = (data) ->
 		($(".comhead", data).map (ndx, item) ->
@@ -76,64 +86,53 @@ Client = (myHost) ->
 
 		headerLinks = $("a", dom("table tr").first())
 		
-		res.links.push {rel: "ycombinator", href: $(headerLinks[0]).attr("href")}
-		res.links.push {rel: "ycombinator", href: "#{myHost}" + $(headerLinks[1]).attr("href")}
-		res.links.push {rel: "news", href: "#{myHost}" + $(headerLinks[2]).attr("href")}
-		res.links.push {rel: "newest", href: "#{myHost}" + $(headerLinks[3]).attr("href")}
-		res.links.push {rel: "newcomments", href: "#{myHost}" + $(headerLinks[4]).attr("href")}
-		res.links.push {rel: "jobs", href: "#{myHost}" + $(headerLinks[5]).attr("href")}
+		_.each ["ycombinator", "news", "newest", "newcomments", "ask", "jobs"], (item, ndx) ->
+			res.links.push {rel: item, href: getUrl headerLinks[ndx]}
+
 		res
 
 	parseComments = (data) ->
 		dom = cheerio.load data
-		rows = $(".defaults", $(dom))
-		console.log rows
-		{}
+		rows = dom(".default")
+		comments = []
+		
+		_.each rows, (item, ndx) ->
+			comment = {}
+			comment.text = $(".comment", $(item)).text()
+			comment.user = $(".comhead a", $(item)).first().text()
+			comments.push comment
+		
+		comments
 
-	callHNews = (uri, fn) ->
+	callHNews = (uri, continuation, parser) ->
 		shred.get 
-			url:"#{host}/#{uri}",
+			url:"#{host}#{uri}",
 			on:
 				200: (response) ->
-					fn(response.body._body)
+					continuation(parser(response.body._body))
 				response: (response) ->
 					console.log("Oh no!")
+
+
+	# public API
+
+	"/" : ({fn}) -> callHNews "/news", fn, parseNews
+	"/news" : ({fn}) -> callHNews "/news", fn, parseNews
+	"/newest" : ({fn}) -> callHNews "/newest", fn, parseNews
+	"/x" : ({uri, fn}) -> callHNews uri, fn, parseNews
+	"/ask" : ({fn}) -> callHNews "/ask", fn, parseNews 
+	"/newcomments" : ({fn}) -> callHNews "/newcomments", fn, parseComments
+	"/item" : ({uri, fn}) -> callHNews uri, fn, parseNews
 	
-	getNewest: ({fn}) ->
-		callHNews "newest", (body) ->
-			news = parseNews body
-			fn(news)
-
-	getNews: ({fn}) ->
-		callHNews "news", (body) ->
-			news = parseNews body
-			fn(news)
-
-	getPage: ({uri, fn})->
-		callHNews uri, (body) ->
-			news = parseNews body
-			fn(news)
-
-	getAsk: ({fn}) ->
-		callHNews "ask", (body) ->
-			news = parseNews body
-			fn(news)
-
-	getNewComments: ({fn}) ->
-		callHNews "newcomments", (body) ->
-			news = parseComments body
-			fn(news)
-
-	getItem: ({uri, fn}) ->
-		callHNews uri, (body) ->
-			console.log body.toString()
-			fn({uri: uri})
 
 
-	getHeaders: (domain) ->
-		headers = null
-		http.get "#{protocol}/#{domain}", (res) ->
-			headers = res.headers
-		headers
+module.exports = HNApi
 
-module.exports = Client
+
+###
+
+getHeaders = (domain) ->
+	headers = null
+	http.get "#{protocol}/#{domain}", (res) ->
+		headers = res.headers
+	headers

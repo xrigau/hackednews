@@ -6,9 +6,7 @@ require('coffee-script');
 var express = require('express')
   , http = require('http')
   , path = require('path')
-  , httpProxy = require('http-proxy')
-  , mongoose = require('mongoose')
-  , db = mongoose.createConnection("mongodb://service:service@linus.mongohq.com:10030/app9934014");
+  , httpProxy = require('http-proxy');
 
 var app = express();
 
@@ -28,7 +26,7 @@ if (env == '' || env == null) {
   settings = {host: "http://localhost:3000/"}
 }
 
-app.clientsettings = settings;
+var api = require("./HNApi")(settings.host);
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
@@ -46,34 +44,10 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-require("./apps/news/routes")(app);
+
+require("./apps/news/routes")(app, api);
 
 app.listen(app.settings.port);
-client = require("./headers")(settings.host)
-
-// database schema stuff
-var newsItemSchema = new mongoose.Schema({
-    title: String,
-    domain: String,
-    storyHref: String
-})
-newsItemSchema.index({ storyHref: 1 }, { unique: true });
-
-var NewsItem = db.model('NewsItem', newsItemSchema)
-
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function callback () {
-/*
-  setInterval(function (argument) {
-    client.getNewest(function(feed){
-      feed.map(function (item) {
-        var model = new NewsItem(item)
-        model.save()
-      })
-    });
-    console.log("tick");
-  }, 5000);*/
-});
 
 
 console.log("Express server listening on port " + app.get('port'));

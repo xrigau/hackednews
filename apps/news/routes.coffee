@@ -1,13 +1,12 @@
 _ = require "underscore"
 
-routes = (app) ->
-	Client = require("../../headers")(app.clientsettings.host)
+routes = (app, api) ->
 	
 	createUrl = (req) ->
 		"http://" + req.headers.host + req.url
 	
 	callback = (fnName, {uri, req, res}) ->
-		Client[fnName](
+		api[fnName](
 			uri: uri
 			fn: (data) ->
 					data.links || data.links = []
@@ -16,64 +15,25 @@ routes = (app) ->
 					res.send(data)
 		)
 
-	_.each [{path:"/", mapped: "getNews"}, "/news", "/newest", "/newcomments", "/ask", "/x", "/item"], (item, ndx) ->
-		console.log item, ndx
-		app.get item, (req, res) ->
-			res.format
-				json: ->
-					callback "getNews", req: req, res: res
-				default: ->
-					callback "getNews", req: req, res: res
-
-
-	app.get "/", (req, res) ->
-		res.format
-			json: ->
-				callback "getNews", req: @["req"], res: res
-			default: ->
-				callback "getNews", req: req, res: res
-
-	app.get "/news", (req, res) ->
-		res.format
-			json: ->
-				callback "getNews", req: req, res: res
-			default: ->
-				callback "getNews", req: req, res: res
-
-	app.get "/newest", (req, res) ->
-		res.format
-			json: ->
-				callback "getNewest", req: req, res: res
-			default: ->
-				callback "getNewest", req: req, res: res
-
-	app.get "/newcomments", (req, res) ->
-		res.format
-			json: ->
-				callback "getNewComments", req: req, res: res
-			default: ->
-				callback "getNewComments", req: req, res: res
-
-	app.get "/ask", (req, res) ->
-		res.format
-			json: ->
-				callback "getAsk", req: req, res: res
-			default: ->
-				callback "getAsk", req: req, res: res
-
-	app.get "/x", (req, res) ->
-		res.format
-			json: ->
-				callback "getPage", uri: "x?fnid=#{req.query.fnid}", req: req, res: res
-			default: ->
-				callback "getPage", uri: "x?fnid=#{req.query.fnid}", req: req, res: res
-
-	app.get "/item", (req, res) ->
-		res.format
-			json: ->
-				callback "getItem", uri: "item?id=#{req.query.id}", req: req, res: res
-			default: ->
-				callback "getItem", uri: "item?id=#{req.query.id}", req: req, res: res
+	_.each [
+		{path:"/"},
+		{path:"/news"},
+		{path:"/newest"},
+		{path:"/newcomments"},
+		{path:"/ask"},
+		{path:"/x", uri: (req) -> "x?fnid=#{req.query.fnid}"}, 
+		{path:"/item", uri: (req) -> "item?id=#{req.query.id}"}], (item, ndx) ->
+			
+			app.get item.path, (req, res) ->
+				params = 
+					req: req
+					res: res
+					uri: item.uri.call req if item.uri?
+				res.format
+					json: ->
+						callback item.path, params
+					default: ->
+						callback item.path, params
 
 
 module.exports = routes
