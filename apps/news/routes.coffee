@@ -1,3 +1,5 @@
+_ = require "underscore"
+
 routes = (app) ->
 	Client = require("../../headers")(app.clientsettings.host)
 	
@@ -14,10 +16,20 @@ routes = (app) ->
 					res.send(data)
 		)
 
+	_.each [{path:"/", mapped: "getNews"}, "/news", "/newest", "/newcomments", "/ask", "/x", "/item"], (item, ndx) ->
+		console.log item, ndx
+		app.get item, (req, res) ->
+			res.format
+				json: ->
+					callback "getNews", req: req, res: res
+				default: ->
+					callback "getNews", req: req, res: res
+
+
 	app.get "/", (req, res) ->
 		res.format
 			json: ->
-				callback "getNews", req: req, res: res
+				callback "getNews", req: @["req"], res: res
 			default: ->
 				callback "getNews", req: req, res: res
 
