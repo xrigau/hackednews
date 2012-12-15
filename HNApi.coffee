@@ -63,7 +63,7 @@ HNApi = (myHost) ->
 		obj.href = parseStoryHref $(data[1])
 		obj.submittedBy = parseSubmittedBy $(data[2])
 		obj.points = parsePoints $(data[2])
-		obj.when = parseWhen $("td", data[2]).text()
+		obj.when = parseWhen $("td", $(data[2])).text()
 		obj
 
 	parseNews = (data) ->
