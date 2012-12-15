@@ -53,7 +53,7 @@ HNApi = (myHost) ->
 
 	parseWhen = (data) ->
 		timeRegex = /(?:)[0-9]* (day[s]*|minute[s]*|hour[s]*) ago/g
-		match = timeRegex.exec($("td", data).text())
+		match = timeRegex.exec(data)
 		match[0]
 
 	parseItem = (data) ->
@@ -63,7 +63,7 @@ HNApi = (myHost) ->
 		obj.href = parseStoryHref $(data[1])
 		obj.submittedBy = parseSubmittedBy $(data[2])
 		obj.points = parsePoints $(data[2])
-		obj.when = parseWhen $(data[2])
+		obj.when = parseWhen $("td", data[2]).text()
 		obj
 
 	parseNews = (data) ->
@@ -100,8 +100,12 @@ HNApi = (myHost) ->
 			comment = {}
 			comment.text = $(".comment", $(item)).text()
 			comment.user = $(".comhead a", $(item)).first().text()
+			comment.link = $($(".comhead a", $(item))[1]).attr("href")
+			comment.parent = $($(".comhead a", $(item))[2]).attr("href")
+			comment.head = $($(".comhead a", $(item))[3]).attr("href")
+			comment.when = parseWhen $(".comhead", $(item)).text()
 			comments.push comment
-		
+
 		comments
 
 	callHNews = (uri, continuation, parser) ->
