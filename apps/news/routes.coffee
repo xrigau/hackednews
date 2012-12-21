@@ -8,7 +8,7 @@ routes = (app, api) ->
 	callback = (fnName, {uri, req, res}) ->
 		console.log fnName.toString()
 		api[fnName](
-			uri: uri
+			uri: if uri then uri()
 			fn: (data) ->
 					data.links || data.links = []
 					data.links.push {rel:"self", href: createUrl req}
@@ -25,7 +25,8 @@ routes = (app, api) ->
 		{path:"/ask"},
 		{path:"/x", uri: (req) -> "/x?fnid=#{req.query.fnid}" },
 		{path:"/user", uri: (req) -> "/user?id=#{req.query.id}" },
-		{path:"/item", uri: (req) -> "/item?id=#{req.query.id}"}], 
+		{path:"/item", uri: (req) -> "/item?id=#{req.query.id}"},
+		{path:"/submitted", uri: (req) -> "/submitted?id=#{req.query.id}"}],
 		(item, ndx) ->
 			app.get item.path, (req, res) ->
 				params = 

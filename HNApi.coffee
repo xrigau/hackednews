@@ -149,6 +149,7 @@ HNApi = (myHost) ->
 	"/ask" : ({fn}) -> callHNews "/ask", fn, parseNews 
 	"/newcomments" : ({fn}) -> callHNews "/newcomments", fn, parseComments
 	"/item" : ({uri, fn}) -> callHNews uri, fn, parseNews
+	"/submitted" : ({uri, fn}) -> callHNews uri, fn, parseComments
 	
 
 
