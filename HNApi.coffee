@@ -8,6 +8,10 @@ protocol = "http://"
 host = "#{protocol}news.ycombinator.com"
 
 HNApi = (myHost) ->
+	
+	userFields = ["user", "created", "karma", "avg", "about"]
+	userLinks = ["submissions", "comments"]
+	sections = ["ycombinator", "news", "newest", "newcomments", "ask", "jobs"]
 
 	chunks = (array, size) ->
 		results = []
@@ -63,7 +67,7 @@ HNApi = (myHost) ->
 		obj.href = parseStoryHref $(data[1])
 		obj.submittedBy = parseSubmittedBy $(data[2])
 		obj.points = parsePoints $(data[2])
-		obj.when = parseWhen $("td", data[2]).text()
+		obj.when = parseWhen $("td", $(data[2])).text()
 		obj
 
 	parseNews = (data) ->
@@ -76,7 +80,6 @@ HNApi = (myHost) ->
 		groups = chunks(stories ,3)
 
 		newsItems = _.map groups, (item, ndx) ->
-			console.log $(item).html()
 			parseItem item
 
 		res = {}
@@ -86,7 +89,7 @@ HNApi = (myHost) ->
 
 		headerLinks = $("a", dom("table tr").first())
 		
-		_.each ["ycombinator", "news", "newest", "newcomments", "ask", "jobs"], (item, ndx) ->
+		_.each sections, (item, ndx) ->
 			res.links.push {rel: item, href: getUrl headerLinks[ndx]}
 
 		res
@@ -95,20 +98,37 @@ HNApi = (myHost) ->
 		dom = cheerio.load data
 		rows = dom(".default")
 		comments = []
-		
+
 		_.each rows, (item, ndx) ->
 			comment = {}
 			comment.text = $(".comment", $(item)).text()
-			comment.user = $(".comhead a", $(item)).first().text()
-			comment.link = $($(".comhead a", $(item))[1]).attr("href")
-			comment.parent = $($(".comhead a", $(item))[2]).attr("href")
-			comment.head = $($(".comhead a", $(item))[3]).attr("href")
+			comment.user = 
+				name: $(".comhead a", $(item)).first().text()
+				href: getUrl $(".comhead a", $(item)).first()
+			comment.link = getUrl $($(".comhead a", $(item))[1])
+			comment.parent = getUrl $($(".comhead a", $(item))[2])
+			comment.head = getUrl $($(".comhead a", $(item))[3])
 			comment.when = parseWhen $(".comhead", $(item)).text()
 			comments.push comment
 
 		comments
 
+	parseUser = (data) ->
+		dom = cheerio.load data
+		rows = dom("table form table td")
+		user = {}
+		_.each userFields, (item, ndx) ->
+			user["#{item}"] = $(rows[(ndx*2)+1]).html()
+		
+		user.links = []
+		_.each userLinks, (item, ndx) ->
+			user.links.push 
+				rel: item
+				href: getUrl $("a", $(rows[((ndx+userFields.length)*2)+1]))
+		user
+
 	callHNews = (uri, continuation, parser) ->
+		console.log "#{host}#{uri}"
 		shred.get 
 			url:"#{host}#{uri}",
 			on:
@@ -122,6 +142,8 @@ HNApi = (myHost) ->
 
 	"/" : ({fn}) -> callHNews "/news", fn, parseNews
 	"/news" : ({fn}) -> callHNews "/news", fn, parseNews
+	"/news2" : ({fn}) -> callHNews "/news2", fn, parseNews
+	"/user" : ({uri, fn}) -> callHNews uri, fn, parseUser
 	"/newest" : ({fn}) -> callHNews "/newest", fn, parseNews
 	"/x" : ({uri, fn}) -> callHNews uri, fn, parseNews
 	"/ask" : ({fn}) -> callHNews "/ask", fn, parseNews 
