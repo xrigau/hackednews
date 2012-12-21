@@ -8,7 +8,7 @@ routes = (app, api) ->
 	callback = (fnName, {uri, req, res}) ->
 		console.log fnName.toString()
 		api[fnName](
-			uri: uri()
+			uri: uri
 			fn: (data) ->
 					data.links || data.links = []
 					data.links.push {rel:"self", href: createUrl req}
