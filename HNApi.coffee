@@ -20,6 +20,10 @@ HNApi = (myHost) ->
 		results
 
 	isUrl = (data) ->
+		
+		if data is undefined
+			return false
+		
 		data.indexOf("http") is 0
 
 	getUrl = (data) ->
@@ -30,8 +34,10 @@ HNApi = (myHost) ->
 			"#{myHost}" + href
 
 	parseDomain = (data) ->
-		($(".comhead", data).map (ndx, item) ->
+		domain = ($(".comhead", data).map (ndx, item) ->
 			$(item).text().replace("(", "").replace(")", "")).pop()
+		if domain
+			domain.replace /^\s+|\s+$/g, ""
 
 	parseTitle = (data) ->
 		titles = $("td a", data).map (ndx, item) ->
@@ -64,8 +70,9 @@ HNApi = (myHost) ->
 		obj = {}
 		obj.domain = parseDomain $(data[1])
 		obj.title = parseTitle $(data[1])
-		obj.href = parseStoryHref $(data[1])
-		obj.submittedBy = parseSubmittedBy $(data[2])
+		obj.href = getUrl $("td a", $(data[1])).last()
+		obj.submittedBy = getUrl $("td a", $(data[2]))
+		obj.comments = getUrl $("td a", $(data[2])).last()
 		obj.points = parsePoints $(data[2])
 		obj.when = parseWhen $("td", $(data[2])).text()
 		obj
@@ -83,7 +90,7 @@ HNApi = (myHost) ->
 			parseItem item
 
 		res = {}
-		res.newsItems = newsItems
+		res = newsItems
 		res.links = []
 		res.links.push {rel:"nextPage", href: parseNextPage $(nextPage)}
 
@@ -127,6 +134,12 @@ HNApi = (myHost) ->
 				href: getUrl $("a", $(rows[((ndx+userFields.length)*2)+1]))
 		user
 
+	parseThreads = (data) ->
+		dom = cheerio.load data
+		rows = dom(".default")
+		console.log rows.length
+		{}
+
 	callHNews = (uri, continuation, parser) ->
 		console.log "#{host}#{uri}"
 		shred.get 
@@ -149,7 +162,9 @@ HNApi = (myHost) ->
 	"/ask" : ({fn}) -> callHNews "/ask", fn, parseNews 
 	"/newcomments" : ({fn}) -> callHNews "/newcomments", fn, parseComments
 	"/item" : ({uri, fn}) -> callHNews uri, fn, parseNews
+	"/comments/item" : ({uri, fn}) -> callHNews uri, fn, parseNews
 	"/submitted" : ({uri, fn}) -> callHNews uri, fn, parseComments
+	"/threads" : ({uri, fn}) -> callHNews uri, fn, parseComments
 	
 
 

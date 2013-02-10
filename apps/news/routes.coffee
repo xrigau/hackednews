@@ -26,7 +26,8 @@ routes = (app, api) ->
 		{path:"/x", uri: (req) -> "/x?fnid=#{req.query.fnid}" },
 		{path:"/user", uri: (req) -> "/user?id=#{req.query.id}" },
 		{path:"/item", uri: (req) -> "/item?id=#{req.query.id}"},
-		{path:"/submitted", uri: (req) -> "/submitted?id=#{req.query.id}"}],
+		{path:"/submitted", uri: (req) -> "/submitted?id=#{req.query.id}"},
+		{path:"/threads", uri: (req) -> "/threads?id=#{req.query.id}"}],
 		(item, ndx) ->
 			app.get item.path, (req, res) ->
 				params = 
