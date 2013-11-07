@@ -8,7 +8,7 @@ protocol = "http://"
 host = "#{protocol}news.ycombinator.com"
 
 HNApi = (myHost) ->
-	
+
 	userFields = ["user", "created", "karma", "avg", "about"]
 	userLinks = ["submissions", "comments"]
 	sections = ["ycombinator", "news", "newest", "newcomments", "ask", "jobs"]
@@ -20,10 +20,10 @@ HNApi = (myHost) ->
 		results
 
 	isUrl = (data) ->
-		
+
 		if data is undefined
 			return false
-		
+
 		data.indexOf("http") is 0
 
 	getUrl = (data) ->
@@ -66,6 +66,14 @@ HNApi = (myHost) ->
 		match = timeRegex.exec(data)
 		match[0]
 
+	parseItemWrapper = (data) ->
+		$local = cheerio.load data
+		rows = $local("table table tr").toArray()
+
+		item = parseItem rows
+		item.comments = parseComments data
+		item
+
 	parseItem = (data) ->
 		obj = {}
 		obj.domain = parseDomain $(data[1])
@@ -83,20 +91,21 @@ HNApi = (myHost) ->
 		rows = dom("table table tr").toArray()
 		stories = rows.splice(0, rows.length-4)
 		nextPage = rows.splice(rows.length-4, rows.length)
-		
+
 		groups = chunks(stories ,3)
 
 		newsItems = _.map groups, (item, ndx) ->
 			parseItem item
 
 		res = {}
-		res = newsItems
+		res.items = newsItems
 		res.links = []
 		res.links.push {rel:"nextPage", href: parseNextPage $(nextPage)}
 
 		headerLinks = $("a", dom("table tr").first())
-		
+
 		_.each sections, (item, ndx) ->
+
 			res.links.push {rel: item, href: getUrl headerLinks[ndx]}
 
 		res
@@ -107,14 +116,22 @@ HNApi = (myHost) ->
 		comments = []
 
 		_.each rows, (item, ndx) ->
+
 			comment = {}
 			comment.text = $(".comment", $(item)).text()
 			comment.user = 
 				name: $(".comhead a", $(item)).first().text()
 				href: getUrl $(".comhead a", $(item)).first()
 			comment.link = getUrl $($(".comhead a", $(item))[1])
-			comment.parent = getUrl $($(".comhead a", $(item))[2])
-			comment.head = getUrl $($(".comhead a", $(item))[3])
+
+			parent = $(".comhead a", $(item))[2]
+
+			if parent
+				comment.parent = getUrl $(parent)
+			head = $(".comhead a", $(item))[3]
+
+			if head
+				comment.head = getUrl $(head)
 			comment.when = parseWhen $(".comhead", $(item)).text()
 			comments.push comment
 
@@ -126,7 +143,7 @@ HNApi = (myHost) ->
 		user = {}
 		_.each userFields, (item, ndx) ->
 			user["#{item}"] = $(rows[(ndx*2)+1]).html()
-		
+
 		user.links = []
 		_.each userLinks, (item, ndx) ->
 			user.links.push 
@@ -141,8 +158,8 @@ HNApi = (myHost) ->
 		{}
 
 	callHNews = (uri, continuation, parser) ->
-		console.log "#{host}#{uri}"
-		shred.get 
+
+		shred.get
 			url:"#{host}#{uri}",
 			on:
 				200: (response) ->
@@ -161,11 +178,10 @@ HNApi = (myHost) ->
 	"/x" : ({uri, fn}) -> callHNews uri, fn, parseNews
 	"/ask" : ({fn}) -> callHNews "/ask", fn, parseNews 
 	"/newcomments" : ({fn}) -> callHNews "/newcomments", fn, parseComments
-	"/item" : ({uri, fn}) -> callHNews uri, fn, parseNews
+	"/item" : ({uri, fn}) -> callHNews uri, fn, parseItemWrapper
 	"/comments/item" : ({uri, fn}) -> callHNews uri, fn, parseNews
 	"/submitted" : ({uri, fn}) -> callHNews uri, fn, parseComments
 	"/threads" : ({uri, fn}) -> callHNews uri, fn, parseComments
-	
 
 
 module.exports = HNApi

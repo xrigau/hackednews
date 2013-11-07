@@ -9,7 +9,7 @@
   "dependencies": {
     "express": "3.0.4",
     "jade": "*",
-    "node-dev": "~0.2.9",
+    "node-dev": "~0.2.10",
     "coffee-script": "~1.4.0",
     "async": "~0.1.22",
     "node-get": "~0.1.0",
@@ -19,5 +19,8 @@
     "jsdom": "~0.2.19",
     "redis": "~0.8.2",
     "mongoose": "~3.4.0"
+  },
+  "scripts": {
+    "start": "./node_modules/.bin/node-dev --debug server.js"
   }
 }
