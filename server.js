@@ -15,7 +15,7 @@ var env = process.argv[2];
 var settings = null;
 
 if(env == 'development'){
-    settings = process.env.URL;
+    settings = {host: process.env.URL}
 }
 
 if(env == 'local'){
