@@ -11,7 +11,7 @@ HNApi = (myHost) ->
 
 	userFields = ["user", "created", "karma", "avg", "about"]
 	userLinks = ["submissions", "comments"]
-	sections = ["ycombinator", "news", "newest", "newcomments", "ask", "jobs"]
+	sections = ["ycombinator", "news", "newest", "newcomments", "ask"]
 
 	chunks = (array, size) ->
 		results = []
@@ -34,10 +34,10 @@ HNApi = (myHost) ->
 			"#{myHost}" + href
 
 	parseDomain = (data) ->
-		domain = ($(".comhead", data).map (ndx, item) ->
-			$(item).text().replace("(", "").replace(")", "")).pop()
-		if domain
-			domain.replace /^\s+|\s+$/g, ""
+		domainArray = ($(".comhead", data).map (ndx, item) ->
+			$(item).text().replace("(", "").replace(")", ""))
+		if domainArray[0]
+			domain = domainArray[0].trim()
 
 	parseTitle = (data) ->
 		titles = $("td a", data).map (ndx, item) ->
@@ -59,12 +59,17 @@ HNApi = (myHost) ->
 		$("td span", data).text().split(' ')[0]
 
 	parseNextPage = (data) ->
-		myHost + $("a", data).attr("href")
+		next = $("a", data).attr("href")
+		if ///^/.*///.test(next)
+			myHost + next.replace("/", "")
+		else
+			myHost + next
 
 	parseWhen = (data) ->
 		timeRegex = /(?:)[0-9]* (day[s]*|minute[s]*|hour[s]*) ago/g
 		match = timeRegex.exec(data)
-		match[0]
+		if match
+			match[0]
 
 	parseItemWrapper = (data) ->
 		$local = cheerio.load data
@@ -86,7 +91,6 @@ HNApi = (myHost) ->
 		obj
 
 	parseNews = (data) ->
-
 		dom = cheerio.load data
 		rows = dom("table table tr").toArray()
 		stories = rows.splice(0, rows.length-4)
@@ -105,7 +109,6 @@ HNApi = (myHost) ->
 		headerLinks = $("a", dom("table tr").first())
 
 		_.each sections, (item, ndx) ->
-
 			res.links.push {rel: item, href: getUrl headerLinks[ndx]}
 
 		res
@@ -176,7 +179,7 @@ HNApi = (myHost) ->
 	"/user" : ({uri, fn}) -> callHNews uri, fn, parseUser
 	"/newest" : ({fn}) -> callHNews "/newest", fn, parseNews
 	"/x" : ({uri, fn}) -> callHNews uri, fn, parseNews
-	"/ask" : ({fn}) -> callHNews "/ask", fn, parseNews 
+	"/ask" : ({fn}) -> callHNews "/ask", fn, parseNews
 	"/newcomments" : ({fn}) -> callHNews "/newcomments", fn, parseComments
 	"/item" : ({uri, fn}) -> callHNews uri, fn, parseItemWrapper
 	"/comments/item" : ({uri, fn}) -> callHNews uri, fn, parseNews
