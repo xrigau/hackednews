@@ -13,7 +13,6 @@ routes = (app, api) ->
 					data.links || data.links = []
 					data.links.push {rel:"self", href: createUrl req}
 					res.set('Content-Type', 'application/json')
-					console.log data
 					res.send(data)
 		)
 
