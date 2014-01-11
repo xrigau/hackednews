@@ -18,7 +18,8 @@
     "underscore": "~1.4.3",
     "jsdom": "~0.2.19",
     "redis": "~0.8.2",
-    "mongoose": "~3.4.0"
+    "mongoose": "~3.4.0",
+    "cheerio": "0.13.1"
   },
   "scripts": {
     "start": "./node_modules/.bin/node-dev --debug server.js"
