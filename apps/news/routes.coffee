@@ -1,6 +1,6 @@
 _ = require "underscore"
 
-routes = (app, api) ->
+NewsRoutes = (app, api) ->
 	
 	createUrl = (req) ->
 		"http://" + req.headers.host + req.url
@@ -40,7 +40,7 @@ routes = (app, api) ->
 					json: ->
 						callback item.path, params
 					default: ->
-						callback item.path, params
+						json()
 
 
-module.exports = routes
+module.exports = NewsRoutes
