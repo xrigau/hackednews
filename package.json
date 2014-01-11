@@ -1,5 +1,5 @@
 {
-  "name": "HackedNews",
+  "name": "HackedNews-JSON-API",
   "version": "0.0.1",
   "main": "server.js",
   "engines": {
