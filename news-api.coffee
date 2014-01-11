@@ -10,7 +10,6 @@ NewsApi = (myHost) ->
 
 	userFields = ["user", "created", "karma", "avg", "about"]
 	userLinks = ["submissions", "comments"]
-	sections = ["ycombinator", "news", "newest", "newcomments", "ask"]
 
 	chunks = (array, size) ->
 		results = []
@@ -18,14 +17,22 @@ NewsApi = (myHost) ->
 			results.push(array.splice(0, size))
 		results
 
+	getUrl = (data) ->
+		url = $(data).attr("href")
+		if url then url.trim()
+
+	getLocalUrl = (data) ->
+		url = getUrl data
+		if (url) then "/" + url
+
 	isUrl = (data) ->
 		if data is undefined
 			return false
 
 		data.indexOf("http") is 0
 
-	getUrl = (data) ->
-		href = $(data).attr("href")
+	getFullUrl = (data) ->
+		href = getUrl data
 		if isUrl href
 			href
 		else
@@ -58,11 +65,10 @@ NewsApi = (myHost) ->
 			parseInt points
 
 	parseNextPage = (data) ->
-		next = $("a", data).attr("href")
-		if ///^/.*///.test(next)
-			myHost + next.replace("/", "")
-		else
-			myHost + next
+		nextPage = $("a", data).attr("href")
+		if not ////.*///.test nextPage
+			nextPage = "/" + nextPage
+		nextPage
 
 	parseWhen = (data) ->
 		timeRegex = /(?:)[0-9]* (day[s]*|minute[s]*|hour[s]*) ago/g
@@ -82,11 +88,11 @@ NewsApi = (myHost) ->
 		obj = {}
 		obj.domain = parseDomain $(data[1])
 		obj.title = parseTitle $(data[1])
-		obj.url = getUrl $("td a", $(data[1])).last()
+		obj.url = getFullUrl $("td a", $(data[1])).last()
 		obj.user = parseUsername $(data[2])
-		obj.userUrl = getUrl $("td a", $(data[2]))
+		obj.userUrl = getLocalUrl $("td a", $(data[2]))
 		obj.comments = parseCommentCount $(data[2])
-		obj.commentsUrl = getUrl $("td a", $(data[2])).last()
+		obj.commentsUrl = getLocalUrl $("td a", $(data[2])).last()
 		obj.points = parsePoints $(data[2])
 		obj.timestamp = parseWhen $("td", $(data[2])).text()
 		obj
@@ -104,13 +110,7 @@ NewsApi = (myHost) ->
 
 		res = {}
 		res.items = newsItems
-		res.links = []
-		res.links.push {rel:"nextPage", href: parseNextPage $(nextPage)}
-
-		headerLinks = $("a", dom("table tr").first())
-
-		_.each sections, (item, ndx) ->
-			res.links.push {rel: item, href: getUrl headerLinks[ndx]}
+		res.nextPage = parseNextPage $(nextPage)
 
 		res
 
@@ -125,17 +125,17 @@ NewsApi = (myHost) ->
 			comment.text = $(".comment", $(item)).text()
 			comment.user = 
 				name: $(".comhead a", $(item)).first().text()
-				href: getUrl $(".comhead a", $(item)).first()
-			comment.link = getUrl $($(".comhead a", $(item))[1])
+				href: getLocalUrl $(".comhead a", $(item)).first()
+			comment.link = getLocalUrl $($(".comhead a", $(item))[1])
 
 			parent = $(".comhead a", $(item))[2]
 
 			if parent
-				comment.parent = getUrl $(parent)
+				comment.parent = getLocalUrl $(parent)
 			head = $(".comhead a", $(item))[3]
 
 			if head
-				comment.head = getUrl $(head)
+				comment.head = getLocalUrl $(head)
 			comment.when = parseWhen $(".comhead", $(item)).text()
 			comments.push comment
 
@@ -152,7 +152,7 @@ NewsApi = (myHost) ->
 		_.each userLinks, (item, ndx) ->
 			user.links.push 
 				rel: item
-				href: getUrl $("a", $(rows[((ndx+userFields.length)*2)+1]))
+				href: getLocalUrl $("a", $(rows[((ndx+userFields.length)*2)+1]))
 		user
 
 	callHNews = (uri, continuation, parser) ->

@@ -2,16 +2,12 @@ _ = require "underscore"
 
 NewsRoutes = (app, api) ->
 	
-	createUrl = (req) ->
-		"http://" + req.headers.host + req.url
-	
 	callback = (fnName, {uri, req, res}) ->
 		console.log fnName.toString()
 		api[fnName](
 			uri: if uri then uri()
 			fn: (data) ->
-					data.links || data.links = []
-					data.links.push {rel:"self", href: createUrl req}
+					data.currentPage || data.currentPage = req.url
 					res.set('Content-Type', 'application/json')
 					res.send(data)
 		)
