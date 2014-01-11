@@ -1,5 +1,4 @@
 cheerio = require('cheerio')
-http = require('http')
 Shred = require("shred")
 shred = new Shred()
 _ = require "underscore"
@@ -7,7 +6,7 @@ $ = require('cheerio')
 protocol = "http://"
 host = "#{protocol}news.ycombinator.com"
 
-HNApi = (myHost) ->
+NewsApi = (myHost) ->
 
 	userFields = ["user", "created", "karma", "avg", "about"]
 	userLinks = ["submissions", "comments"]
@@ -20,7 +19,6 @@ HNApi = (myHost) ->
 		results
 
 	isUrl = (data) ->
-
 		if data is undefined
 			return false
 
@@ -37,26 +35,27 @@ HNApi = (myHost) ->
 		domainArray = ($(".comhead", data).map (ndx, item) ->
 			$(item).text().replace("(", "").replace(")", ""))
 		if domainArray[0]
-			domain = domainArray[0].trim()
+			domainArray[0].trim()
 
 	parseTitle = (data) ->
 		titles = $("td a", data).map (ndx, item) ->
 			$(item).text().replace("(", "").replace(")", "")
 		_.filter(titles, (title) -> title != '').pop()
 
-	parseStoryHref = (data) ->
-		$("td a", data).last().attr("href")
+	parseUsername = (data) ->
+		$("td a", data).html() or undefined
 
-	parseSubmittedBy = (data) ->
-		user = {}
-		user.name = $("td a", data).html()
-		user.link = {}
-		user.link.rel = "viewUser"
-		user.link.href = host+"/"+$("td a", data).attr("href")
-		user
+	parseCommentCount = (data) ->
+		comments = $("td a", data).last().html()
+		commentsRegex = /([0-9]+) comment(s)?/
+		match = commentsRegex.exec comments
+		if match
+			parseInt match[1]
 
 	parsePoints = (data) =>
-		$("td span", data).text().split(' ')[0]
+		points = $("td span", data).text().split(' ')[0]
+		if (points)
+			parseInt points
 
 	parseNextPage = (data) ->
 		next = $("a", data).attr("href")
@@ -83,11 +82,13 @@ HNApi = (myHost) ->
 		obj = {}
 		obj.domain = parseDomain $(data[1])
 		obj.title = parseTitle $(data[1])
-		obj.href = getUrl $("td a", $(data[1])).last()
-		obj.submittedBy = getUrl $("td a", $(data[2]))
-		obj.comments = getUrl $("td a", $(data[2])).last()
+		obj.url = getUrl $("td a", $(data[1])).last()
+		obj.user = parseUsername $(data[2])
+		obj.userUrl = getUrl $("td a", $(data[2]))
+		obj.comments = parseCommentCount $(data[2])
+		obj.commentsUrl = getUrl $("td a", $(data[2])).last()
 		obj.points = parsePoints $(data[2])
-		obj.when = parseWhen $("td", $(data[2])).text()
+		obj.timestamp = parseWhen $("td", $(data[2])).text()
 		obj
 
 	parseNews = (data) ->
@@ -154,14 +155,7 @@ HNApi = (myHost) ->
 				href: getUrl $("a", $(rows[((ndx+userFields.length)*2)+1]))
 		user
 
-	parseThreads = (data) ->
-		dom = cheerio.load data
-		rows = dom(".default")
-		console.log rows.length
-		{}
-
 	callHNews = (uri, continuation, parser) ->
-
 		shred.get
 			url:"#{host}#{uri}",
 			on:
@@ -187,13 +181,4 @@ HNApi = (myHost) ->
 	"/threads" : ({uri, fn}) -> callHNews uri, fn, parseComments
 
 
-module.exports = HNApi
-
-
-###
-
-getHeaders = (domain) ->
-	headers = null
-	http.get "#{protocol}/#{domain}", (res) ->
-		headers = res.headers
-	headers
+module.exports = NewsApi
