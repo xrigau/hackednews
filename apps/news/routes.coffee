@@ -7,7 +7,7 @@ NewsRoutes = (app, api) ->
 		api[fnName](
 			uri: if uri then uri()
 			fn: (data) ->
-					data.currentPage || data.currentPage = req.url
+					data.currentPage || data.currentPage = req.url.replace("/", "")
 					res.set('Content-Type', 'application/json')
 					res.send(data)
 		)
