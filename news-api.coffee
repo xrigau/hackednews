@@ -21,10 +21,6 @@ NewsApi = (myHost) ->
 		url = $(data).attr("href")
 		if url then url.trim()
 
-	getLocalUrl = (data) ->
-		url = getUrl data
-		if (url) then "/" + url
-
 	isUrl = (data) ->
 		if data is undefined
 			return false
@@ -90,9 +86,9 @@ NewsApi = (myHost) ->
 		obj.title = parseTitle $(data[1])
 		obj.url = getFullUrl $("td a", $(data[1])).last()
 		obj.user = parseUsername $(data[2])
-		obj.userUrl = getLocalUrl $("td a", $(data[2]))
+		obj.userUrl = getUrl $("td a", $(data[2]))
 		obj.comments = parseCommentCount $(data[2])
-		obj.commentsUrl = getLocalUrl $("td a", $(data[2])).last()
+		obj.commentsUrl = getUrl $("td a", $(data[2])).last()
 		obj.points = parsePoints $(data[2])
 		obj.timestamp = parseWhen $("td", $(data[2])).text()
 		obj
@@ -125,17 +121,17 @@ NewsApi = (myHost) ->
 			comment.text = $(".comment", $(item)).text()
 			comment.user = 
 				name: $(".comhead a", $(item)).first().text()
-				href: getLocalUrl $(".comhead a", $(item)).first()
-			comment.link = getLocalUrl $($(".comhead a", $(item))[1])
+				href: getUrl $(".comhead a", $(item)).first()
+			comment.link = getUrl $($(".comhead a", $(item))[1])
 
 			parent = $(".comhead a", $(item))[2]
 
 			if parent
-				comment.parent = getLocalUrl $(parent)
+				comment.parent = getUrl $(parent)
 			head = $(".comhead a", $(item))[3]
 
 			if head
-				comment.head = getLocalUrl $(head)
+				comment.head = getUrl $(head)
 			comment.when = parseWhen $(".comhead", $(item)).text()
 			comments.push comment
 
@@ -152,7 +148,7 @@ NewsApi = (myHost) ->
 		_.each userLinks, (item, ndx) ->
 			user.links.push 
 				rel: item
-				href: getLocalUrl $("a", $(rows[((ndx+userFields.length)*2)+1]))
+				href: getUrl $("a", $(rows[((ndx+userFields.length)*2)+1]))
 		user
 
 	callHNews = (uri, continuation, parser) ->
