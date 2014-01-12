@@ -62,8 +62,8 @@ NewsApi = (myHost) ->
 
 	parseNextPage = (data) ->
 		nextPage = $("a", data).attr("href")
-		if not ////.*///.test nextPage
-			nextPage = "/" + nextPage
+		if ////.*///.test nextPage
+			nextPage = nextPage.replace("/", "")
 		nextPage
 
 	parseWhen = (data) ->
