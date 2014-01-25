@@ -2,7 +2,7 @@ pm = require 'pagemunch'
 
 request = require 'request'
 cheerio = require 'cheerio'
-md = require 'html-md'
+# md = require 'html-md'
 
 SummaryApi = (apiKey) ->
     pm.set {key: apiKey}
@@ -22,7 +22,7 @@ SummaryApi = (apiKey) ->
             else
                 $ = cheerio.load(body)
                 result = {
-                    text: md($('body').html()),
+                    text: $('body').html(),
                     image: ''
                 }
                 callback(result)
