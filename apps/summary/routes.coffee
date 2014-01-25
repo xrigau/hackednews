@@ -11,7 +11,8 @@ SummaryRoutes = (app, api) ->
 		)
 
 	_.each [
-		{ path:"/summary", url: (req) -> "#{req.query.url}" }
+		{ path:"/summary", url: (req) -> "#{req.query.url}" },
+		{ path:"/summary-md", url: (req) -> "#{req.query.url}" }
 	], (item, ndx) ->
 		app.get item.path, (req, res) ->
 			params = 
