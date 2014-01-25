@@ -21,7 +21,11 @@ SummaryApi = (apiKey) ->
                 callback('')
             else
                 $ = cheerio.load(body)
-                callback(md($('body').html()))
+                result = {
+                    text: md($('body').html()),
+                    image: ''
+                }
+                callback(result)
 
     # public API
     "/summary" : ({url, fn}) -> getSummary(url, fn)
