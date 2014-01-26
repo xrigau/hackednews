@@ -19,6 +19,7 @@
     "jsdom": "~0.2.19",
     "redis": "~0.8.2",
     "mongoose": "~3.4.0",
+    "cheerio": "0.13.1",
     "request": "2.33.0"
   },
   "scripts": {
