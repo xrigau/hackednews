@@ -1,4 +1,5 @@
 request = require 'request'
+md = require 'html-md'
 
 SummaryApi = (readabilityToken) ->
     getSummary = (url, callback) ->
@@ -14,7 +15,9 @@ SummaryApi = (readabilityToken) ->
                 console.log error
                 callback ''
             else
-                callback body
+                res = JSON.parse body
+                res.content = md res.content
+                callback res
 
     # public API
     "/summary" : ({url, fn}) -> getSummary(url, fn)
