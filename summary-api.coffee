@@ -1,31 +1,20 @@
 request = require 'request'
-cheerio = require 'cheerio'
-sanitizeHtml = require 'sanitize-html'
-Boilerpipe = require 'boilerpipe'
 
-SummaryApi = ->
-    boilerpipe = new Boilerpipe
-
+SummaryApi = (readabilityToken) ->
     getSummary = (url, callback) ->
-        boilerpipe.setUrl url
-        boilerpipe.getText (err, text) ->
-            if err
-                console.log err
+        options = {
+            url: 'http://readability.com/api/content/v1/parser',
+            qs: {
+                url: url,
+                token: readabilityToken
+            }
+        }
+        request.get options, (error, response, body) ->
+            if error
+                console.log error
                 callback ''
             else
-                boilerpipe.getImages (err, images) ->
-                    image = ''
-                    if err
-                        console.log err
-                    else
-                        console.log images
-                        image = images[0]
-
-                    result = {
-                        image: image,
-                        text: text
-                    }
-                    callback result
+                callback body
 
     # public API
     "/summary" : ({url, fn}) -> getSummary(url, fn)

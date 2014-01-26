@@ -13,18 +13,20 @@ var settings = null;
 
 if (env == 'development') {
   settings = {
-    host: process.env.URL
+    host: process.env.URL,
+    readabilityToken: process.env.READABILITY_TOKEN
   }
 } else if (env == 'local') {
   settings = require(__dirname + '/local-settings');
 } else {
   settings = {
-    host: "http://localhost:3000/"
+    host: "http://localhost:3000/",
+    readabilityToken: "INSERT_YOUR_TOKEN_HERE"
   }
 }
 
 var newsApi = require("./news-api")(settings.host);
-var summaryApi = require("./summary-api")();
+var summaryApi = require("./summary-api")(settings.readabilityToken);
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
