@@ -23,7 +23,9 @@
     "pagemunch": "0.1.0",
     "html-md": "3.0.2",
     "request": "2.33.0",
-    "cheerio": "0.13.1"
+    "cheerio": "0.13.1",
+    "sanitize-html": "1.0.3",
+    "boilerpipe": "0.0.4"
   },
   "scripts": {
     "start": "./node_modules/.bin/node-dev --debug server.js"

@@ -13,20 +13,18 @@ var settings = null;
 
 if (env == 'development') {
   settings = {
-    host: process.env.URL,
-    pageMunchApiKey: process.env.PAGE_MUNCH_API_KEY
+    host: process.env.URL
   }
 } else if (env == 'local') {
   settings = require(__dirname + '/local-settings');
 } else {
   settings = {
-    host: "http://localhost:3000/",
-    pageMunchApiKey: "PLACE_YOUR_OWN_API_KEY_HERE"
+    host: "http://localhost:3000/"
   }
 }
 
 var newsApi = require("./news-api")(settings.host);
-var summaryApi = require("./summary-api")(settings.pageMunchApiKey);
+var summaryApi = require("./summary-api")();
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
