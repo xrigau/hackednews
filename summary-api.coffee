@@ -17,6 +17,7 @@ SummaryApi = (readabilityToken) ->
             else
                 res = JSON.parse body
                 res.content = md res.content
+                res.content = res.content.replace /!\[(.*)?\]\((.*)?\)/g, ""
                 callback res
 
     # public API
